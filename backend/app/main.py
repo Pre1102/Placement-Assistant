@@ -12,7 +12,7 @@ from app.services.rag_engine import RAGEngine
 # Import Routes
 from app.api.routes import (
     chat, profile, placement, companies, career,
-    interview, resume, documents, knowledge_base, retrieval
+    interview, resume, documents, knowledge_base, retrieval, auth
 )
 
 # Initialize Core Services
@@ -78,6 +78,7 @@ app.add_middleware(
 )
 
 # Include API Routers
+app.include_router(auth.router, prefix=settings.API_PREFIX)
 app.include_router(chat.router, prefix=settings.API_PREFIX)
 app.include_router(profile.router, prefix=settings.API_PREFIX)
 app.include_router(placement.router, prefix=settings.API_PREFIX)

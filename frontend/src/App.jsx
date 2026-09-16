@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 
-// Components
+import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
+import LoadingSpinner from './components/LoadingSpinner';
+
+// Auth
+import AuthPage from './pages/AuthPage';
 
 // Student Pages
-import Landing from './pages/Landing';
 import Dashboard from './pages/Dashboard';
 import AIAssistant from './pages/AIAssistant';
 import PlacementChecker from './pages/PlacementChecker';
@@ -22,72 +25,74 @@ import AdminDocuments from './pages/AdminDocuments';
 import AdminKnowledgeBase from './pages/AdminKnowledgeBase';
 import AdminRetrievalTest from './pages/AdminRetrievalTest';
 
-import { getProfile } from './services/api';
+// Protected layout component
+function AppShell() {
+  const { user, profile, loading } = useAuth();
+  const [activeRole, setActiveRole] = useState('student');
 
-export default function App() {
-  const [activeRole, setActiveRole] = useState('student'); // 'student' | 'admin'
-  const [studentProfile, setStudentProfile] = useState(null);
-
+  // Sync active role from auth user role
   useEffect(() => {
-    async function loadProfile() {
-      try {
-        const data = await getProfile();
-        setStudentProfile(data);
-      } catch (err) {
-        console.error("Failed to load profile for App shell:", err);
-      }
-    }
-    loadProfile();
-  }, []);
+    if (user?.role === 'admin') setActiveRole('admin');
+    else setActiveRole('student');
+  }, [user]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <LoadingSpinner label="Restoring your session..." size="lg" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
 
   return (
-    <Router>
-      <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-        
-        {/* Header Bar */}
-        <Navbar 
-          activeRole={activeRole} 
-          setActiveRole={setActiveRole} 
-          studentProfile={studentProfile} 
-        />
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+      <Navbar activeRole={activeRole} setActiveRole={setActiveRole} />
 
-        {/* Main Body Shell */}
-        <div className="flex-1 max-w-7xl w-full mx-auto flex">
-          
-          {/* Navigation Sidebar */}
-          <Sidebar activeRole={activeRole} />
+      <div className="flex-1 max-w-7xl w-full mx-auto flex">
+        <Sidebar activeRole={activeRole} />
 
-          {/* Router View Content Area */}
-          <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-hidden">
-            <Routes>
-              {/* Student Routes */}
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/landing" element={<Landing />} />
-              <Route path="/ai-assistant" element={<AIAssistant />} />
-              <Route path="/placement" element={<PlacementChecker />} />
-              <Route path="/companies" element={<CompanyExplorer />} />
-              <Route path="/career" element={<CareerGuidance />} />
-              <Route path="/interview-prep" element={<InterviewPrep />} />
-              <Route path="/resume-guidance" element={<ResumeGuidance />} />
-              <Route 
-                path="/profile" 
-                element={<ProfilePage onProfileUpdated={(updated) => setStudentProfile(updated)} />} 
-              />
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-hidden">
+          <Routes>
+            {/* Student Routes */}
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/ai-assistant" element={<AIAssistant />} />
+            <Route path="/placement" element={<PlacementChecker />} />
+            <Route path="/companies" element={<CompanyExplorer />} />
+            <Route path="/career" element={<CareerGuidance />} />
+            <Route path="/interview-prep" element={<InterviewPrep />} />
+            <Route path="/resume-guidance" element={<ResumeGuidance />} />
+            <Route path="/profile" element={<ProfilePage onProfileUpdated={() => {}} />} />
 
-              {/* Admin Routes */}
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin/documents" element={<AdminDocuments />} />
-              <Route path="/admin/knowledge-base" element={<AdminKnowledgeBase />} />
-              <Route path="/admin/retrieval-test" element={<AdminRetrievalTest />} />
+            {/* Admin Routes */}
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/documents" element={<AdminDocuments />} />
+            <Route path="/admin/knowledge-base" element={<AdminKnowledgeBase />} />
+            <Route path="/admin/retrieval-test" element={<AdminRetrievalTest />} />
 
-              {/* Catch-all Redirect */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </main>
-
-        </div>
-
+            {/* Catch-all */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </main>
       </div>
-    </Router>
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <Routes>
+          {/* Public Auth Route */}
+          <Route path="/auth" element={<AuthPage />} />
+          {/* Everything else protected */}
+          <Route path="/*" element={<AppShell />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 }

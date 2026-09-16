@@ -23,6 +23,38 @@ class StudentProfileResponse(StudentProfileBase):
     class Config:
         from_attributes = True
 
+# User Authentication Schemas
+class UserSignup(BaseModel):
+    email: str
+    password: str
+    name: str
+    role: str = "student" # "student" or "admin"
+    branch: Optional[str] = "Computer Engineering"
+    cgpa: Optional[float] = 7.2
+    graduation_year: Optional[int] = 2027
+    backlogs: Optional[int] = 1
+    skills: Optional[str] = "Python, C++, SQL, HTML, CSS"
+    preferred_role: Optional[str] = "Data Analyst"
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+class UserResponse(BaseModel):
+    id: int
+    name: str
+    email: str
+    role: str
+
+    class Config:
+        from_attributes = True
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserResponse
+    profile: Optional[StudentProfileBase] = None
+
 # Sources
 class SourceCitation(BaseModel):
     document_name: str

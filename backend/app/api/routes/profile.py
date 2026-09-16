@@ -1,23 +1,28 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
+from typing import Optional
+
 from app.core.database import get_db
 from app.models.schemas import StudentProfileResponse, StudentProfileCreate
 from app.models.database_models import User, StudentProfile
+from app.api.routes.auth import get_current_user_from_token
 
 router = APIRouter(prefix="/profile", tags=["Profile"])
 
 @router.get("", response_model=StudentProfileResponse)
-def get_profile(db: Session = Depends(get_db)):
-    profile = db.query(StudentProfile).first()
-    if not profile:
-        # Create default demo profile
+def get_profile(authorization: Optional[str] = Header(None), db: Session = Depends(get_db)):
+    user = get_current_user_from_token(authorization, db)
+    if not user:
+        # Fallback to first user in database or create default demo user
         user = db.query(User).first()
         if not user:
             user = User(name="Demo Student", email="student@careercampus.ai", role="student")
             db.add(user)
             db.commit()
             db.refresh(user)
-        
+
+    profile = db.query(StudentProfile).filter(StudentProfile.user_id == user.id).first()
+    if not profile:
         profile = StudentProfile(
             user_id=user.id,
             branch="Computer Engineering",
@@ -30,8 +35,7 @@ def get_profile(db: Session = Depends(get_db)):
         db.add(profile)
         db.commit()
         db.refresh(profile)
-        
-    user = db.query(User).filter(User.id == profile.user_id).first()
+
     return StudentProfileResponse(
         id=profile.id,
         user_id=profile.user_id,
@@ -41,20 +45,18 @@ def get_profile(db: Session = Depends(get_db)):
         backlogs=profile.backlogs,
         skills=profile.skills,
         preferred_role=profile.preferred_role,
-        name=user.name if user else "Demo Student",
-        email=user.email if user else "student@careercampus.ai"
+        name=user.name,
+        email=user.email
     )
 
 @router.put("", response_model=StudentProfileResponse)
-def update_profile(data: StudentProfileCreate, db: Session = Depends(get_db)):
-    profile = db.query(StudentProfile).first()
-    if not profile:
+def update_profile(data: StudentProfileCreate, authorization: Optional[str] = Header(None), db: Session = Depends(get_db)):
+    user = get_current_user_from_token(authorization, db)
+    if not user:
         user = db.query(User).first()
-        if not user:
-            user = User(name="Demo Student", email="student@careercampus.ai", role="student")
-            db.add(user)
-            db.commit()
-            db.refresh(user)
+
+    profile = db.query(StudentProfile).filter(StudentProfile.user_id == user.id).first()
+    if not profile:
         profile = StudentProfile(user_id=user.id)
         db.add(profile)
 
@@ -68,7 +70,6 @@ def update_profile(data: StudentProfileCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(profile)
 
-    user = db.query(User).filter(User.id == profile.user_id).first()
     return StudentProfileResponse(
         id=profile.id,
         user_id=profile.user_id,
@@ -78,6 +79,6 @@ def update_profile(data: StudentProfileCreate, db: Session = Depends(get_db)):
         backlogs=profile.backlogs,
         skills=profile.skills,
         preferred_role=profile.preferred_role,
-        name=user.name if user else "Demo Student",
-        email=user.email if user else "student@careercampus.ai"
+        name=user.name,
+        email=user.email
     )

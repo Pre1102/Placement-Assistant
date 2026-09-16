@@ -7,9 +7,25 @@ const api = axios.create({
   },
 });
 
+// Attach JWT token from localStorage to every outgoing request
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('careercampus_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+}, (error) => Promise.reject(error));
+
+// Auth API Calls
+export const signupApi = async (userData) => (await api.post('/auth/signup', userData)).data;
+export const loginApi = async (credentials) => (await api.post('/auth/login', credentials)).data;
+export const getMeApi = async () => (await api.get('/auth/me')).data;
+
+// Profile API Calls
 export const getProfile = async () => (await api.get('/profile')).data;
 export const updateProfile = async (data) => (await api.put('/profile', data)).data;
 
+// Features API Calls
 export const askChat = async (query) => (await api.post('/chat', { query })).data;
 
 export const checkEligibility = async (company_name = null) => 

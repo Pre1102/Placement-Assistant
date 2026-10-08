@@ -1,17 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Compass, Sparkles, CheckCircle2, BookOpen, Code, Trophy } from 'lucide-react';
+import { Compass, BookOpen, Code, Trophy, CheckCircle2 } from 'lucide-react';
 import Card from '../components/Card';
-import Button from '../components/Button';
 import Badge from '../components/Badge';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { getCareerRoadmap } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export default function CareerGuidance() {
-  const [targetRole, setTargetRole] = useState("Data Analyst");
+  const { profile } = useAuth();
+  const [targetRole, setTargetRole] = useState(profile?.preferred_role || "Data Analyst");
   const [skillLevel, setSkillLevel] = useState("Beginner");
   const [prepTime, setPrepTime] = useState("3 Months");
   const [roadmap, setRoadmap] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (profile?.preferred_role) {
+      setTargetRole(profile.preferred_role);
+    }
+  }, [profile]);
 
   const fetchRoadmap = async () => {
     setLoading(true);
@@ -102,19 +109,18 @@ export default function CareerGuidance() {
                 <BookOpen className="w-5 h-5 text-emerald-600" />
                 <span>Step-by-Step Learning Timeline</span>
               </h3>
-              <Badge variant="emerald">{roadmap.preparation_time} Plan</Badge>
+              <Badge variant="emerald">{prepTime} Plan</Badge>
             </div>
 
             <div className="space-y-4">
-              {roadmap.phases.map((phase, idx) => (
+              {(roadmap.learning_sequence || []).map((step, idx) => (
                 <div key={idx} className="p-4 bg-slate-50 rounded-xl border border-slate-200/80 text-xs">
                   <div className="flex items-center justify-between font-bold text-slate-900 mb-1">
-                    <span className="text-emerald-700 font-extrabold">{phase.phase}</span>
-                    <span className="text-slate-500 text-[11px] font-normal">{phase.duration}</span>
+                    <span className="text-emerald-700 font-extrabold">{step.month}</span>
+                    <span className="text-slate-500 text-[11px] font-normal">{step.focus}</span>
                   </div>
-                  <h4 className="font-bold text-slate-800 mb-2">{phase.title}</h4>
-                  <div className="flex flex-wrap gap-1.5">
-                    {phase.topics.map((top, tIdx) => (
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {(step.topics || []).map((top, tIdx) => (
                       <span key={tIdx} className="px-2.5 py-1 bg-white border border-slate-200 text-slate-700 rounded-md text-[11px]">
                         ✓ {top}
                       </span>
@@ -131,27 +137,46 @@ export default function CareerGuidance() {
               <Code className="w-5 h-5 text-purple-600" />
               <span>Recommended Portfolio Projects</span>
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-              {roadmap.portfolio_projects.map((proj, pIdx) => (
-                <div key={pIdx} className="p-3 bg-purple-50/50 border border-purple-200 rounded-xl text-purple-900 font-semibold">
-                  🚀 {proj}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              {(roadmap.projects_to_build || []).map((proj, pIdx) => (
+                <div key={pIdx} className="p-4 bg-purple-50/50 border border-purple-200 rounded-xl text-purple-900 space-y-1">
+                  <h4 className="font-bold text-purple-950 flex items-center">
+                    <span className="mr-1.5">🚀</span> {proj.title || proj}
+                  </h4>
+                  {proj.description && (
+                    <p className="text-[11px] text-purple-800 leading-relaxed">{proj.description}</p>
+                  )}
                 </div>
               ))}
             </div>
           </Card>
 
-          {/* Interview Tips */}
-          <Card className="bg-amber-50/50 border-amber-200">
-            <h3 className="font-bold text-amber-900 text-base mb-2 flex items-center space-x-2">
-              <Trophy className="w-5 h-5 text-amber-600" />
-              <span>Placement Officer's Pro Tips</span>
-            </h3>
-            <ul className="list-disc list-inside space-y-1 text-xs text-amber-800 font-medium">
-              {roadmap.interview_tips.map((tip, tIdx) => (
-                <li key={tIdx}>{tip}</li>
-              ))}
-            </ul>
-          </Card>
+          {/* Interview Topics & Resume Focus */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Card className="bg-amber-50/50 border-amber-200">
+              <h3 className="font-bold text-amber-900 text-base mb-2 flex items-center space-x-2">
+                <Trophy className="w-5 h-5 text-amber-600" />
+                <span>Key Technical Interview Topics</span>
+              </h3>
+              <ul className="list-disc list-inside space-y-1 text-xs text-amber-800 font-medium">
+                {(roadmap.interview_topics || []).map((topic, tIdx) => (
+                  <li key={tIdx}>{topic}</li>
+                ))}
+              </ul>
+            </Card>
+
+            <Card className="bg-emerald-50/50 border-emerald-200">
+              <h3 className="font-bold text-emerald-900 text-base mb-2 flex items-center space-x-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                <span>Resume Highlights to Emphasize</span>
+              </h3>
+              <ul className="list-disc list-inside space-y-1 text-xs text-emerald-800 font-medium">
+                {(roadmap.resume_focus || []).map((focus, fIdx) => (
+                  <li key={fIdx}>{focus}</li>
+                ))}
+              </ul>
+            </Card>
+          </div>
 
         </div>
       ) : null}

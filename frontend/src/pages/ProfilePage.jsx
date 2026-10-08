@@ -4,13 +4,15 @@ import Card from '../components/Card';
 import Button from '../components/Button';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { getProfile, updateProfile } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export default function ProfilePage({ onProfileUpdated }) {
+  const { updateLocalProfile } = useAuth();
   const [profile, setProfile] = useState({
     branch: "Computer Engineering",
-    cgpa: 7.2,
+    cgpa: 8.0,
     graduation_year: 2027,
-    backlogs: 1,
+    backlogs: 0,
     skills: "Python, C++, SQL, HTML, CSS",
     preferred_role: "Data Analyst"
   });
@@ -39,6 +41,7 @@ export default function ProfilePage({ onProfileUpdated }) {
     try {
       const updated = await updateProfile(profile);
       setProfile(updated);
+      updateLocalProfile(updated);
       setMessage("Profile updated successfully!");
       if (onProfileUpdated) onProfileUpdated(updated);
     } catch (err) {
@@ -90,7 +93,7 @@ export default function ProfilePage({ onProfileUpdated }) {
                 <option value="Computer Engineering">Computer Engineering (CE)</option>
                 <option value="Computer Science & Engineering">Computer Science & Engineering (CSE)</option>
                 <option value="Information Technology">Information Technology (IT)</option>
-                <option value="Electronics & Communication">Electronics & Communication (ECE)</option>
+                <option value="Electronics & Telecom">Electronics & Telecom (ECE)</option>
                 <option value="Electrical Engineering">Electrical Engineering (EE)</option>
               </select>
             </div>

@@ -33,16 +33,17 @@ class PlacementEligibilityEngine:
         # 3. Branch extraction
         branches = []
         text_upper = text.upper()
-        if "COMPUTER ENGINEERING" in text_upper or " CE " in text_upper or "CE," in text_upper or "(CE)" in text_upper:
+        if "COMPUTER" in text_upper or " CSE " in text_upper or " CE " in text_upper or "(CE)" in text_upper or "(CSE)" in text_upper:
             branches.append("Computer Engineering")
-        if "COMPUTER SCIENCE" in text_upper or " CSE " in text_upper or "(CSE)" in text_upper:
-            branches.append("Computer Science & Engineering")
+            branches.append("Computer Science")
         if "INFORMATION TECHNOLOGY" in text_upper or " IT " in text_upper or "(IT)" in text_upper:
             branches.append("Information Technology")
-        if "ELECTRONICS" in text_upper or " ECE " in text_upper or "(ECE)" in text_upper:
-            branches.append("Electronics & Communication")
+        if "ELECTRONICS" in text_upper or " ECE " in text_upper or "(ECE)" in text_upper or "ENTC" in text_upper:
+            branches.append("Electronics & Telecom")
         if "ELECTRICAL" in text_upper or " EE " in text_upper or "(EE)" in text_upper:
             branches.append("Electrical Engineering")
+        if "MECHANICAL" in text_upper or " ME " in text_upper or "(ME)" in text_upper:
+            branches.append("Mechanical Engineering")
         
         criteria["branches"] = list(set(branches))
         return criteria
@@ -56,9 +57,9 @@ class PlacementEligibilityEngine:
         reasons = []
         is_eligible = True
 
-        student_cgpa = profile_dict.get("cgpa", 0.0)
-        student_backlogs = profile_dict.get("backlogs", 0)
-        student_branch = profile_dict.get("branch", "")
+        student_cgpa = float(profile_dict.get("cgpa", 0.0))
+        student_backlogs = int(profile_dict.get("backlogs", 0))
+        student_branch = str(profile_dict.get("branch", "")).strip()
 
         req_min_cgpa = criteria.get("min_cgpa")
         req_max_backlogs = criteria.get("max_backlogs")
@@ -79,7 +80,7 @@ class PlacementEligibilityEngine:
             satisfied = student_cgpa >= req_min_cgpa
             if not satisfied:
                 is_eligible = False
-                reasons.append(f"Your CGPA ({student_cgpa}) is below required minimum of {req_min_cgpa}.")
+                reasons.append(f"Your CGPA ({student_cgpa}) is below the required minimum of {req_min_cgpa}.")
             checks.append({
                 "requirement_name": "Minimum CGPA",
                 "required_value": f"≥ {req_min_cgpa}",
@@ -100,16 +101,26 @@ class PlacementEligibilityEngine:
                 "satisfied": satisfied
             })
 
-        # Branch Check
+        # Branch Check (Smart & Lenient Keyword Matching)
         if req_branches:
-            # Check for partial / abbreviated match
-            branch_match = any(
-                b.lower() in student_branch.lower() or student_branch.lower() in b.lower()
-                for b in req_branches
-            )
+            student_b_lower = student_branch.lower()
+            
+            # Computer / IT equivalence family
+            is_comp_student = any(k in student_b_lower for k in ["computer", "ce", "cse", "it", "information", "software"])
+            is_comp_req = any(any(k in b.lower() for k in ["computer", "ce", "cse", "it", "information", "software"]) for b in req_branches)
+
+            if is_comp_student and is_comp_req:
+                branch_match = True
+            else:
+                branch_match = any(
+                    b.lower() in student_b_lower or student_b_lower in b.lower()
+                    for b in req_branches
+                )
+
             if not branch_match:
                 is_eligible = False
                 reasons.append(f"Your branch ({student_branch}) is not listed under eligible branches ({', '.join(req_branches)}).")
+
             checks.append({
                 "requirement_name": "Eligible Branch",
                 "required_value": ", ".join(req_branches),

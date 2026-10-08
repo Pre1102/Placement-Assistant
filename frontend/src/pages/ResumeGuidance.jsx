@@ -2,27 +2,30 @@ import React, { useState, useEffect } from 'react';
 import { FileText, Sparkles, AlertCircle, CheckCircle2, Award } from 'lucide-react';
 import Card from '../components/Card';
 import Button from '../components/Button';
-import Badge from '../components/Badge';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { getProfile, getResumeGuidance } from '../services/api';
+import { getResumeGuidance } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export default function ResumeGuidance() {
-  const [targetRole, setTargetRole] = useState("Software Developer");
-  const [skills, setSkills] = useState("Python, SQL, HTML, CSS");
+  const { profile } = useAuth();
+  const [targetRole, setTargetRole] = useState(profile?.preferred_role || "Software Developer");
+  const [skills, setSkills] = useState(profile?.skills || "Python, SQL, HTML, CSS");
   const [projects, setProjects] = useState("Placement portal using Python and SQLite");
   const [guidance, setGuidance] = useState(null);
   const [loading, setLoading] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
 
   useEffect(() => {
+    if (profile) {
+      if (profile.preferred_role) setTargetRole(profile.preferred_role);
+      if (profile.skills) setSkills(profile.skills);
+    }
+  }, [profile]);
+
+  useEffect(() => {
     async function init() {
       try {
-        const prof = await getProfile();
-        if (prof) {
-          setSkills(prof.skills || skills);
-          setTargetRole(prof.preferred_role || targetRole);
-        }
-        const data = await getResumeGuidance(prof?.preferred_role || targetRole, prof?.skills || skills, projects);
+        const data = await getResumeGuidance(targetRole, skills, projects);
         setGuidance(data);
       } catch (err) {
         console.error("Resume guidance error:", err);
@@ -118,33 +121,49 @@ export default function ResumeGuidance() {
       {guidance && (
         <div className="space-y-6">
           
-          {/* Score Banner */}
+          {/* Header Banner */}
           <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-6 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
-              <span className="text-emerald-400 font-semibold text-xs uppercase tracking-wider">ATS Alignment Score</span>
-              <h2 className="text-3xl font-extrabold mt-1">{guidance.alignment_score}</h2>
-              <p className="text-xs text-slate-300 mt-1">Based on role expectations for {guidance.target_role}</p>
+              <span className="text-emerald-400 font-semibold text-xs uppercase tracking-wider">Target Role Analysis</span>
+              <h2 className="text-2xl font-extrabold mt-1">{guidance.target_role}</h2>
+              <p className="text-xs text-slate-300 mt-1">{guidance.disclaimer || "ATS formatting suggestions based on placement norms."}</p>
             </div>
             <div className="bg-white/10 p-4 rounded-xl border border-white/10 text-center">
-              <span className="text-xs text-slate-300 block">Missing Key Skills</span>
-              <span className="text-amber-400 font-bold text-sm">{guidance.missing_skills.length} Critical Skill(s)</span>
+              <span className="text-xs text-slate-300 block">Skills Gap</span>
+              <span className="text-amber-400 font-bold text-sm">{(guidance.missing_skill_areas || []).length} Area(s) to Improve</span>
             </div>
           </div>
 
-          {/* Missing Skills Grid */}
-          <Card>
-            <h3 className="font-bold text-slate-900 text-base mb-2 flex items-center space-x-2">
-              <AlertCircle className="w-5 h-5 text-amber-600" />
-              <span>Recommended Skills to Add to Resume</span>
-            </h3>
-            <div className="flex flex-wrap gap-2 pt-1">
-              {guidance.missing_skills.map((sk, idx) => (
-                <span key={idx} className="px-3 py-1 bg-amber-50 text-amber-900 border border-amber-200 rounded-lg text-xs font-semibold">
-                  + {sk}
-                </span>
-              ))}
-            </div>
-          </Card>
+          {/* Highlighted Skills vs Missing Skills */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Card>
+              <h3 className="font-bold text-slate-900 text-sm mb-2 flex items-center space-x-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <span>Skills Present on Your Profile</span>
+              </h3>
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {(guidance.highlight_skills || []).map((sk, idx) => (
+                  <span key={idx} className="px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-xs font-semibold">
+                    ✓ {sk}
+                  </span>
+                ))}
+              </div>
+            </Card>
+
+            <Card>
+              <h3 className="font-bold text-slate-900 text-sm mb-2 flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 text-amber-600" />
+                <span>Recommended Skills to Add</span>
+              </h3>
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {(guidance.missing_skill_areas || []).map((sk, idx) => (
+                  <span key={idx} className="px-2.5 py-1 bg-amber-50 text-amber-900 border border-amber-200 rounded-lg text-xs font-semibold">
+                    + {sk}
+                  </span>
+                ))}
+              </div>
+            </Card>
+          </div>
 
           {/* STAR Bullet Point Suggestions */}
           <Card>
@@ -153,7 +172,7 @@ export default function ResumeGuidance() {
               <span>ATS-Optimized Bullet Point Suggestions (STAR Format)</span>
             </h3>
             <div className="space-y-2.5 text-xs">
-              {guidance.bullet_suggestions.map((bullet, idx) => (
+              {(guidance.suggested_bullet_points || []).map((bullet, idx) => (
                 <div key={idx} className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-medium leading-relaxed flex items-start space-x-2">
                   <span className="text-emerald-600 font-bold text-sm">•</span>
                   <span>{bullet}</span>

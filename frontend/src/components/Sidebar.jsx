@@ -4,8 +4,12 @@ import {
   LayoutDashboard, BotMessageSquare, CheckCircle2, Building2, 
   Compass, HelpCircle, FileText, User, BarChart3, Files, Database, SearchCode 
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
-export default function Sidebar({ activeRole }) {
+export default function Sidebar() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
+
   const studentNav = [
     { name: 'Dashboard', path: '/', icon: LayoutDashboard },
     { name: 'AI Assistant', path: '/ai-assistant', icon: BotMessageSquare },
@@ -24,14 +28,14 @@ export default function Sidebar({ activeRole }) {
     { name: 'Retrieval Testing', path: '/admin/retrieval-test', icon: SearchCode },
   ];
 
-  const currentNav = activeRole === 'student' ? studentNav : adminNav;
+  const currentNav = isAdmin ? adminNav : studentNav;
 
   return (
     <aside className="w-64 bg-white border-r border-slate-200 min-h-[calc(100vh-4rem)] p-4 flex flex-col justify-between hidden md:block">
       <div className="space-y-6">
         <div>
           <h2 className="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
-            {activeRole === 'student' ? 'Student Workspace' : 'Placement Cell Admin'}
+            {isAdmin ? 'Placement Cell Admin' : 'Student Workspace'}
           </h2>
           <nav className="space-y-1">
             {currentNav.map((item) => {
@@ -44,12 +48,14 @@ export default function Sidebar({ activeRole }) {
                   className={({ isActive }) =>
                     `flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                       isActive
-                        ? 'bg-emerald-50 text-emerald-700 font-semibold shadow-xs border border-emerald-100'
+                        ? isAdmin
+                          ? 'bg-purple-50 text-purple-700 font-semibold shadow-xs border border-purple-100'
+                          : 'bg-emerald-50 text-emerald-700 font-semibold shadow-xs border border-emerald-100'
                         : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                     }`
                   }
                 >
-                  <Icon className="w-4 h-4 text-emerald-600" />
+                  <Icon className={`w-4 h-4 ${isAdmin ? 'text-purple-600' : 'text-emerald-600'}`} />
                   <span>{item.name}</span>
                 </NavLink>
               );
@@ -60,7 +66,7 @@ export default function Sidebar({ activeRole }) {
 
       {/* Footer info badge */}
       <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-xs text-slate-500">
-        <p className="font-semibold text-slate-700">Controlled Knowledge Base</p>
+        <p className="font-semibold text-slate-700">{isAdmin ? 'Placement Cell Administration' : 'Controlled Knowledge Base'}</p>
         <p className="mt-0.5 text-[11px] text-slate-500">Source-Grounded Institutional AI</p>
       </div>
     </aside>

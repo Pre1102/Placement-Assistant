@@ -131,6 +131,24 @@ export default function CareerGuidance() {
             </div>
           </Card>
 
+          {/* Placement Officer Pro-Tips */}
+          {roadmap.placement_officer_tips && roadmap.placement_officer_tips.length > 0 && (
+            <Card className="bg-gradient-to-r from-blue-50 to-indigo-50/70 border-blue-200">
+              <h3 className="font-bold text-blue-950 text-base mb-2 flex items-center space-x-2">
+                <span className="text-blue-600 font-bold text-lg">★</span>
+                <span>Placement Officer Pro-Tips for Campus Drives</span>
+              </h3>
+              <ul className="space-y-1.5 text-xs text-blue-900 font-medium">
+                {roadmap.placement_officer_tips.map((tip, idx) => (
+                  <li key={idx} className="flex items-start space-x-2">
+                    <span className="text-blue-600 font-extrabold">•</span>
+                    <span>{tip}</span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
+
           {/* Recommended Portfolio Projects */}
           <Card>
             <h3 className="font-bold text-slate-900 text-base mb-3 flex items-center space-x-2">

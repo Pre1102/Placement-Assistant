@@ -125,11 +125,13 @@ class CareerRoadmapRequest(BaseModel):
 
 class CareerRoadmapResponse(BaseModel):
     target_role: str
+    timeline_duration: str
     skills_to_learn: List[str]
     learning_sequence: List[Dict[str, Any]]
     projects_to_build: List[Dict[str, str]]
     interview_topics: List[str]
     resume_focus: List[str]
+    placement_officer_tips: List[str]
     is_general_guidance: bool = True
 
 # Interview Prep
@@ -139,9 +141,11 @@ class InterviewPrepRequest(BaseModel):
     difficulty: Optional[str] = "Intermediate"
 
 class InterviewQuestion(BaseModel):
-    category: str # "Technical", "HR", "Behavioral"
+    category: str # "Technical", "SQL", "System Design", "HR", "Behavioral"
     question: str
+    model_answer: str
     tip: str
+    difficulty: str = "Intermediate" 
 
 class InterviewPrepResponse(BaseModel):
     target_role: str
@@ -156,6 +160,8 @@ class ResumeGuidanceRequest(BaseModel):
 
 class ResumeGuidanceResponse(BaseModel):
     target_role: str
+    ats_score: int
+    score_breakdown: Dict[str, int]
     highlight_skills: List[str]
     suggested_bullet_points: List[str]
     missing_skill_areas: List[str]

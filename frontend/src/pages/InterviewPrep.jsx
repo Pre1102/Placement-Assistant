@@ -71,10 +71,10 @@ export default function InterviewPrep() {
               className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 focus:outline-none focus:border-emerald-500 text-xs"
             >
               <option value="All">All Topics</option>
-              <option value="Data Structures & Algorithms">Data Structures & Algorithms</option>
-              <option value="SQL & Databases">SQL & Databases</option>
-              <option value="System Design">System Design</option>
-              <option value="Behavioral & HR">Behavioral & HR</option>
+              <option value="Technical">Technical & DSA</option>
+              <option value="SQL">SQL & Database Architecture</option>
+              <option value="System Design">System Design & Scalability</option>
+              <option value="HR">HR & Behavioral (STAR)</option>
             </select>
           </div>
 
@@ -118,7 +118,7 @@ export default function InterviewPrep() {
                       <h3 className="font-bold text-slate-900 text-sm">{q.question}</h3>
                     </div>
                     <div className="flex items-center space-x-2 text-[11px]">
-                      <Badge variant="slate">{q.topic}</Badge>
+                      <Badge variant="slate">{q.category || q.topic}</Badge>
                     </div>
                   </div>
                   <button className="text-slate-400 hover:text-slate-600 mt-1">
@@ -128,10 +128,16 @@ export default function InterviewPrep() {
 
                 {isOpen && (
                   <div className="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-700 space-y-3 animate-fadeIn">
-                    <div className="bg-emerald-50/60 p-3.5 rounded-xl border border-emerald-200/80">
-                      <span className="font-bold text-emerald-900 block mb-1">Model Answer / Key Points:</span>
-                      <p className="leading-relaxed text-slate-800 font-medium whitespace-pre-line">{q.answer}</p>
+                    <div className="bg-emerald-50/70 p-3.5 rounded-xl border border-emerald-200">
+                      <span className="font-bold text-emerald-900 block mb-1">Model Answer & Solution Architecture:</span>
+                      <p className="leading-relaxed text-slate-800 font-medium whitespace-pre-line">{q.model_answer || q.answer}</p>
                     </div>
+                    {q.tip && (
+                      <div className="bg-amber-50/70 p-3 rounded-xl border border-amber-200/80 text-amber-900 text-xs font-medium flex items-start space-x-2">
+                        <span className="font-bold text-amber-700">💡 Interviewer Evaluation Tip:</span>
+                        <span>{q.tip}</span>
+                      </div>
+                    )}
                   </div>
                 )}
               </Card>

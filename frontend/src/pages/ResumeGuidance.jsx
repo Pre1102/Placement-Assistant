@@ -81,6 +81,7 @@ export default function ResumeGuidance() {
                 <option value="AI/ML Engineer">AI/ML Engineer</option>
                 <option value="Web Developer">Web Developer</option>
                 <option value="Cybersecurity">Cybersecurity Analyst</option>
+                <option value="Cloud Engineer">Cloud Engineer</option>
               </select>
             </div>
 
@@ -121,16 +122,24 @@ export default function ResumeGuidance() {
       {guidance && (
         <div className="space-y-6">
           
-          {/* Header Banner */}
-          <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-6 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+          {/* Header Banner with ATS Alignment Score */}
+          <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white p-6 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-md">
             <div>
-              <span className="text-emerald-400 font-semibold text-xs uppercase tracking-wider">Target Role Analysis</span>
+              <span className="text-emerald-400 font-semibold text-xs uppercase tracking-wider">Target Role ATS Evaluation</span>
               <h2 className="text-2xl font-extrabold mt-1">{guidance.target_role}</h2>
-              <p className="text-xs text-slate-300 mt-1">{guidance.disclaimer || "ATS formatting suggestions based on placement norms."}</p>
+              <p className="text-xs text-slate-300 mt-1">{guidance.disclaimer || "ATS alignment analysis based on campus drive prerequisites."}</p>
             </div>
-            <div className="bg-white/10 p-4 rounded-xl border border-white/10 text-center">
-              <span className="text-xs text-slate-300 block">Skills Gap</span>
-              <span className="text-amber-400 font-bold text-sm">{(guidance.missing_skill_areas || []).length} Area(s) to Improve</span>
+            <div className="flex items-center space-x-3">
+              <div className="bg-emerald-500/20 px-5 py-3 rounded-xl border border-emerald-400/30 text-center">
+                <span className="text-[11px] text-emerald-300 block font-semibold uppercase tracking-wider">ATS Alignment Score</span>
+                <span className="text-3xl font-black text-emerald-400">{guidance.ats_score || 85}%</span>
+                <span className="text-[10px] text-emerald-200 block font-medium">Screening Threshold: >=70%</span>
+              </div>
+              <div className="bg-white/10 px-4 py-3 rounded-xl border border-white/10 text-center">
+                <span className="text-[11px] text-slate-300 block font-medium">Identified Gaps</span>
+                <span className="text-amber-400 font-bold text-lg">{(guidance.missing_skill_areas || []).length} Skills</span>
+                <span className="text-[10px] text-slate-300 block font-medium">To Add</span>
+              </div>
             </div>
           </div>
 

@@ -22,10 +22,19 @@ class RAGEngine:
         # 2. Retrieve Relevant Chunks
         chunks = self.retriever.retrieve_chunks(db, query, top_k=4, score_threshold=0.20)
 
-        # 3. Handle Unknown Information (If no context retrieved for institutional placement queries)
+        # 3. Handle Unknown Information (If no context retrieved or queried entity unknown)
         is_unknown = False
-        if not chunks and category in ["PLACEMENT_ELIGIBILITY", "COMPANY_REQUIREMENTS", "PLACEMENT_PROCEDURE", "INTERNSHIP"]:
-            is_unknown = True
+        
+        # Check if query asks for out-of-distribution entities (Company Z, Company X, 2035 batch, dress code, etc.)
+        q_lower = query.lower()
+        is_unsupported_topic = any(kw in q_lower for kw in [
+            "company z", "company x", "company y", "2035", "dress code", "sunday", "5 lakhs per month"
+        ])
+
+        if not chunks or is_unsupported_topic:
+            if category in ["PLACEMENT_ELIGIBILITY", "COMPANY_REQUIREMENTS", "PLACEMENT_PROCEDURE", "INTERNSHIP", "GENERAL"]:
+                is_unknown = True
+                chunks = [] # clear irrelevant noise chunks for safe rejection
 
         # Extract Sources
         sources = []

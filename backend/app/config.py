@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     
     # Paths
     BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./careercampus.db")
+    DATABASE_URL: str = os.getenv("DATABASE_URL", f"sqlite:///{os.path.join(BASE_DIR, 'careercampus.db').replace(os.sep, '/')}")
     VECTORSTORE_DIR: str = os.getenv("VECTORSTORE_DIR", os.path.join(BASE_DIR, "vectorstore"))
     DATA_DIR: str = os.getenv("DATA_DIR", os.path.join(BASE_DIR, "data", "demo"))
     
